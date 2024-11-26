@@ -2,10 +2,12 @@ package id
 
 import (
 	"fmt"
-	"github.com/ebauman/rancher-cluster-id-finder/pkg/flags"
-	"github.com/ebauman/rancher-cluster-id-finder/pkg/kubernetes"
-	"github.com/spf13/cobra"
 	"os"
+	"time"
+
+	"github.com/rancher-government-carbide/rancher-cluster-id-finder/pkg/flags"
+	"github.com/rancher-government-carbide/rancher-cluster-id-finder/pkg/kubernetes"
+	"github.com/spf13/cobra"
 )
 
 var IdCmd = &cobra.Command{
@@ -17,19 +19,39 @@ var IdCmd = &cobra.Command{
 			return err
 		}
 
-		rancherClusterId, valid := kc.CheckLocalCluster()
-		if ! valid {
+		var rancherClusterId string
+		var valid bool
+		currentRetries := 0
+
+		rancherClusterId, valid = kc.CheckLocalCluster()
+		if !valid {
 			rancherClusterId, valid = kc.GetClusterIDFromConfigMap()
-			if ! valid {
+			if !valid {
 				rancherClusterId, valid = kc.GetClusterIDFromSecret()
-				if ! valid {
+				if !valid {
 					rancherClusterId, valid = kc.GetClusterIDFromAnnotations()
 				}
 			}
 		}
 
-		if ! valid {
-			return fmt.Errorf("ERROR: Could not get Cluster ID.")
+		for (rancherClusterId == "") && (currentRetries < flags.Retries) {
+			fmt.Println("Rancher URL Not found. Retrying..")
+			time.Sleep(time.Duration(flags.Interval) * time.Second)
+			rancherClusterId, valid = kc.CheckLocalCluster()
+			if !valid {
+				rancherClusterId, valid = kc.GetClusterIDFromConfigMap()
+				if !valid {
+					rancherClusterId, valid = kc.GetClusterIDFromSecret()
+					if !valid {
+						rancherClusterId, valid = kc.GetClusterIDFromAnnotations()
+					}
+				}
+			}
+			currentRetries += 1
+		}
+
+		if !valid {
+			return fmt.Errorf("ERROR: Retries exceeded. Could not get Cluster ID.")
 		}
 
 		if flags.ConfigMapName != "" {

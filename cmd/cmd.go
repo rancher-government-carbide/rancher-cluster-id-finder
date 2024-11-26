@@ -2,11 +2,12 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/ebauman/rancher-cluster-id-finder/cmd/id"
-	"github.com/ebauman/rancher-cluster-id-finder/cmd/url"
-	"github.com/ebauman/rancher-cluster-id-finder/pkg/flags"
-	"github.com/spf13/cobra"
 	"os"
+
+	"github.com/rancher-government-carbide/rancher-cluster-id-finder/cmd/id"
+	"github.com/rancher-government-carbide/rancher-cluster-id-finder/cmd/url"
+	"github.com/rancher-government-carbide/rancher-cluster-id-finder/pkg/flags"
+	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
@@ -22,6 +23,8 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&flags.ConfigMapNamespace, "configmap-namespace", "", "namespace of configmap")
 	rootCmd.PersistentFlags().StringVar(&flags.ConfigMapKey, "configmap-key", "", "key in configmap")
 	rootCmd.PersistentFlags().StringVar(&flags.WriteFile, "write-file", "", "path to write output")
+	rootCmd.PersistentFlags().IntVar(&flags.Retries, "retries", 10, "number of retries to acquire metadata before failure")
+	rootCmd.PersistentFlags().IntVar(&flags.Interval, "interval", 5, "internal in seconds between retries")
 
 	rootCmd.AddCommand(id.IdCmd)
 	rootCmd.AddCommand(url.UrlCmd)

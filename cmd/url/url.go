@@ -2,10 +2,12 @@ package url
 
 import (
 	"fmt"
-	"github.com/ebauman/rancher-cluster-id-finder/pkg/flags"
-	"github.com/ebauman/rancher-cluster-id-finder/pkg/kubernetes"
-	"github.com/spf13/cobra"
 	"os"
+	"time"
+
+	"github.com/rancher-government-carbide/rancher-cluster-id-finder/pkg/flags"
+	"github.com/rancher-government-carbide/rancher-cluster-id-finder/pkg/kubernetes"
+	"github.com/spf13/cobra"
 )
 
 var UrlCmd = &cobra.Command{
@@ -17,7 +19,17 @@ var UrlCmd = &cobra.Command{
 			return err
 		}
 
-		url, err := kc.GetRancherURL()
+		var url string
+		currentRetries := 0
+
+		url, err = kc.GetRancherURL()
+		for (url == "") && (currentRetries < flags.Retries) {
+			fmt.Println("Rancher URL Not found. Retrying..")
+			time.Sleep(time.Duration(flags.Interval) * time.Second)
+			url, err = kc.GetRancherURL()
+			currentRetries += 1
+		}
+
 		if err != nil {
 			return err
 		}
@@ -32,8 +44,6 @@ var UrlCmd = &cobra.Command{
 		if flags.WriteFile != "" {
 			err = os.WriteFile(flags.WriteFile, []byte(url), 0666)
 		}
-
-		fmt.Print(url)
 
 		return nil
 	},

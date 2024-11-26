@@ -1,4 +1,4 @@
-module github.com/ebauman/rancher-cluster-id-finder
+module github.com/rancher-government-carbide/rancher-cluster-id-finder
 
 go 1.18
 

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/ebauman/rancher-cluster-id-finder/cmd"
+	"github.com/rancher-government-carbide/rancher-cluster-id-finder/cmd"
 )
 
 func main() {

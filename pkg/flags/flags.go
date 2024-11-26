@@ -7,4 +7,6 @@ var (
 	ConfigMapNamespace string
 	ConfigMapKey       string
 	WriteFile          string
+	Retries            int
+	Interval           int
 )
